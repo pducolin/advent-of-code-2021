@@ -9,6 +9,7 @@ I'm using this project to play with Rust, TDD (Test Driven Development) and pre-
   - [TIL](#til)
     - [Resources](#resources)
     - [Rust learnings](#rust-learnings)
+      - [Day 01](#day-01)
 
 ## Testing
 
@@ -25,5 +26,31 @@ Here's a collection of resources and learnings from 2021 edition
 ### Resources
 
 - [Rust by example](https://github.com/rust-lang/rust-by-example) a collection of examples to learn Rust
+- [AoC 2020 in Rust](https://github.com/duarten/advent-of-code/tree/main/aoc2020) inspired my project structure
+- [Rust formatter](https://github.com/rust-lang/rustfmt)
 
 ### Rust learnings
+
+#### Day 01
+
+Installed Rust on my laptop following [official website instructions](https://www.rust-lang.org/tools/install)
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Using [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=matklad.rust-analyzer) extension in VS Code, I preferred its developer experience compared to the offical extension.
+
+Rust often uses a `Maybe` like monad, `Result`. Its value can be accessed using `unwrap`
+
+```rust
+let file = File::open("inputs/day01.txt").unwrap();
+```
+
+Variables are immutable by default, aka constants: their value cannot be changed, unless they are explicitly declared mutable using `mut`
+
+```rust
+let mut counter = 0;
+```
+
+I use `cargo run` to build and execute my binary
