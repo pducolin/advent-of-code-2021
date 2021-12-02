@@ -10,6 +10,7 @@ I'm using this project to play with Rust, TDD (Test Driven Development) and pre-
     - [Resources](#resources)
     - [Rust learnings](#rust-learnings)
       - [Day 01](#day-01)
+      - [Day 02](#day-02)
 
 ## Testing
 
@@ -53,4 +54,35 @@ Variables are immutable by default, aka constants: their value cannot be changed
 let mut counter = 0;
 ```
 
-I use `cargo run` to build and execute my binary
+I use `cargo run --bin dayXX` to build and execute my daily binary
+
+```bash
+cargo run --bin day01
+```
+
+#### Day 02
+
+Structs in Rust
+
+```rust
+struct Instruction {
+  direction: String,
+  count: i32,
+}
+
+let instruction = {direction: 'down', count: 5};
+```
+
+Extract an array of `Instruction` struct from a file:
+
+```rust
+let instructions: Vec<Instruction> = io::BufReader::new(file)
+            .lines()
+            .map(|line|line.unwrap())
+            .map(|line|{
+              let splits: Vec<&str> = line.split_whitespace().collect();
+              Instruction{direction: String::from(splits[0]), count: splits[1].parse().unwrap()}
+            })
+            .collect();
+```
+
