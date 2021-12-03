@@ -1,7 +1,6 @@
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashSet};
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::ops::BitAnd;
 
 fn binary_string_to_decimal(binary_string: &String) -> u32 {
   return u32::from_str_radix(binary_string, 2).unwrap()
@@ -34,35 +33,6 @@ fn gamma_rate(binary_strings: &Vec<String>) -> String {
     }
 
     return most_common_bits;
-}
-
-fn epsilon_rate(binary_strings: &Vec<String>) -> String {
-  let word_length = binary_strings.first().unwrap().len();
-    let mut zeros: Vec<u32> = vec![0; word_length];
-    let mut ones: Vec<u32> =vec![0; word_length];
-
-    for word in binary_strings {
-      let chars: Vec<char> = word.chars().collect();
-      for index in 0..word_length {
-        let c: char = chars[index];
-        match c {
-          '0'=> zeros[index] += 1,
-          '1' => ones[index] += 1,
-          _ => panic!(),
-        }
-      }
-    }  
-
-    let mut least_common_bits: String = String::from("");
-    for index in 0..word_length {
-      if zeros[index] <= ones[index] {
-        least_common_bits += "0";
-      } else {
-        least_common_bits += "1";
-      }
-    }
-
-    return least_common_bits;
 }
 
 fn binary_not(s: &String) -> String {
@@ -111,10 +81,8 @@ struct BitCount {
   zeros: u32,
 }
 
-
-fn solution_2(diagnostics: &Vec<String>) -> u32 {
+fn build_diagnostic_by_bits(diagnostics: &Vec<String>) -> Vec<DiagnosticByBit> {
   let word_length = diagnostics.first().unwrap().len();
-  // build a dictionary of diagnostics by bits
   let mut diagnostics_by_bits: Vec<DiagnosticByBit> = Vec::new();
   for _ in 0..word_length {
     diagnostics_by_bits.push(DiagnosticByBit {ones:HashSet::new(),zeros: HashSet::new()});
@@ -135,71 +103,62 @@ fn solution_2(diagnostics: &Vec<String>) -> u32 {
       };
     }
   }
+  return diagnostics_by_bits;
+}
+
+fn count_bits_at_index(set: &HashSet<String>, index: usize) -> BitCount {
+  let mut bit_count = BitCount{ones:0, zeros:0};
+  for word in set.iter() {
+    let bits: Vec<char> = word.chars().collect();
+    let bit: char = bits[index];
+    match bit {
+      '0'=> {
+        bit_count.zeros += 1;
+      },
+      '1' => {
+        bit_count.ones += 1;
+      },
+      _ => panic!(),
+    }
+  }
+  return bit_count;
+}
+
+fn solution_2(diagnostics: &Vec<String>) -> u32 {
+  // build a dictionary of diagnostics by bits
+  let diagnostics_by_bits: Vec<DiagnosticByBit> = build_diagnostic_by_bits(diagnostics);
 
   let mut oxygen_set :HashSet<String> = HashSet::from_iter(diagnostics.iter().map(|d|d.to_string()));
   let mut co2_set :HashSet<String> = HashSet::from_iter(diagnostics.iter().map(|d|d.to_string()));
   // oxygen
-  for index in 0..word_length {
-    let mut bit_count = BitCount{ones:0, zeros:0};
-    for word in oxygen_set.iter() {
-      let bits: Vec<char> = word.chars().collect();
-      let bit: char = bits[index];
-      match bit {
-        '0'=> {
-          bit_count.zeros += 1;
-        },
-        '1' => {
-          bit_count.ones += 1;
-        },
-        _ => panic!(),
-      }
-    }
-
+  let mut index = 0;
+  while oxygen_set.len() > 1 {
+    let bit_count = count_bits_at_index(&oxygen_set, index);
     if bit_count.zeros > bit_count.ones {
       oxygen_set = oxygen_set.intersection(&diagnostics_by_bits[index].zeros).map(|d|d.to_string()).collect();
     } else {
       oxygen_set = oxygen_set.intersection(&diagnostics_by_bits[index].ones).map(|d|d.to_string()).collect();
     }
-    
-    if oxygen_set.len() == 1 {
-      break;
-    }
+    index += 1;
   }
-
+  
   // co2
-  for index in 0..word_length {
-    let mut bit_count = BitCount{ones:0, zeros:0};
-    for word in co2_set.iter() {
-      let bits: Vec<char> = word.chars().collect();
-      let bit: char = bits[index];
-      match bit {
-        '0'=> {
-          bit_count.zeros += 1;
-        },
-        '1' => {
-          bit_count.ones += 1;
-        },
-        _ => panic!(),
-      }
-    }
-
-    if bit_count.ones < bit_count.zeros {
+  index = 0;
+  while co2_set.len() > 1 {
+    let bit_count = count_bits_at_index(&co2_set, index);
+    if bit_count.zeros > bit_count.ones {
       co2_set = co2_set.intersection(&diagnostics_by_bits[index].ones).map(|d|d.to_string()).collect();
     } else {
       co2_set = co2_set.intersection(&diagnostics_by_bits[index].zeros).map(|d|d.to_string()).collect();
     }
-    
-    if co2_set.len() == 1 {
-      break;
-    }
+    index += 1;
   }
+
   let oxygen = binary_string_to_decimal( oxygen_set.iter().next().unwrap());
   let co2 = binary_string_to_decimal(co2_set.iter().next().unwrap());
 
   return oxygen * co2;
 }
-
-
 
 fn main() {
     let file = File::open("inputs/day03.txt").unwrap();
