@@ -11,6 +11,7 @@ I'm using this project to play with Rust, TDD (Test Driven Development) and pre-
     - [Rust learnings](#rust-learnings)
       - [Day 01](#day-01)
       - [Day 02](#day-02)
+      - [Day 04](#day-04)
 
 ## Testing
 
@@ -86,3 +87,6 @@ let instructions: Vec<Instruction> = io::BufReader::new(file)
             .collect();
 ```
 
+#### Day 04
+
+Derive: The compiler is capable of providing basic implementations for some traits via the #[derive] attribute. These traits can still be manually implemented if a more complex behavior is required.
