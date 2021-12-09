@@ -12,6 +12,7 @@ I'm using this project to play with Rust, TDD (Test Driven Development) and pre-
       - [Day 01](#day-01)
       - [Day 02](#day-02)
       - [Day 04](#day-04)
+      - [Day 09](#day-09)
 
 ## Testing
 
@@ -90,3 +91,9 @@ let instructions: Vec<Instruction> = io::BufReader::new(file)
 #### Day 04
 
 Derive: The compiler is capable of providing basic implementations for some traits via the #[derive] attribute. These traits can still be manually implemented if a more complex behavior is required.
+
+#### Day 09
+
+[Mutable references](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html#mutable-references) or how to pass a value by reference, and let the function change it.
+
+>The restriction preventing multiple mutable references to the same data at the same time allows for mutation but in a very controlled fashion. It’s something that new Rustaceans struggle with, because most languages let you mutate whenever you’d like.The benefit of having this restriction is that Rust can prevent data races at compile time.
