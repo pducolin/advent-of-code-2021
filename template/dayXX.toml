@@ -1,5 +1,4 @@
 
-
 [[bin]]
 name = "dayXX"
 path = "src/dayXX.rs"
