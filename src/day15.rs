@@ -1,7 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::cmp::Ordering;
+use std::collections::{HashMap, BinaryHeap, HashSet};
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::{cmp};
 
 /*
 function Dijkstra(Graph, source):
@@ -133,6 +133,18 @@ fn string_to_numbers(s: &String) -> Vec<u64> {
 fn get_neighbours(point: &Point, size: &Size) -> Vec<Point> {
   let mut neighbours: Vec<Point> = Vec::new();
 
+    // left
+    if point.col > 0 {
+      let neighbour = Point{row: point.row, col: point.col - 1};
+      neighbours.push(neighbour);
+    }
+  
+    // top
+    if point.row > 0 {
+      let neighbour = Point{row: point.row - 1, col: point.col};
+      neighbours.push(neighbour);
+    }
+
   // right
   if point.col < size.tot_cols - 1 {
     let neighbour = Point{row: point.row, col: point.col + 1};
@@ -147,58 +159,72 @@ fn get_neighbours(point: &Point, size: &Size) -> Vec<Point> {
 
   return neighbours;
 }
+#[derive(Copy, Clone, Eq, PartialEq)]
+struct State {
+    point: Point,
+    cost: u64,
+}
+ 
+impl Ord for State {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.cost.cmp(&self.cost)
+    }
+}
+ 
+impl PartialOrd for State {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 
 
 fn dijkstra_shortest_path(origin_matrix: &DijkstraMatrix, source: &Point, target: &Point) -> u64 {
   let mut matrix = origin_matrix.clone();
-  let mut to_visit: HashSet<Point> = HashSet::new();
+  let mut heap: BinaryHeap<State> = BinaryHeap::new();
+  let mut visited: HashSet<Point> = HashSet::new();
   let points_matrix = matrix.points_matrix.clone();
  
-  for row in matrix.points_matrix {
-    for point in row {
-      to_visit.insert(point.clone());
-    }
-  }
   // initially we now source to source distance cost is 0
   matrix.risk_from_source_by_point.insert(source.clone(), 0);
+  heap.push(State{
+    point: source.clone(),
+    cost: 0
+  });
 
-  while !to_visit.is_empty() {
-
+  while let Some(State { point, cost }) = heap.pop() {
     // find cheapest point from source
-    let cheapest_point= to_visit.clone().into_iter().min_by(|a,b|{
-      let val_a = matrix.risk_from_source_by_point.get(a).unwrap().clone();
-      let val_b = matrix.risk_from_source_by_point.get(b).unwrap().clone();
-      return val_a.cmp(&val_b);
-    }).unwrap();
-
-    to_visit.remove(&cheapest_point);
-    if cheapest_point == *target {
+    if point == *target {
       break;
     }
 
-    println!("Visiting point [{:?},{:?}]", cheapest_point.row, cheapest_point.col);
-    println!("{:} to visit", to_visit.len());
+    visited.insert(point.clone());
 
     let size: Size = Size { 
       tot_cols: points_matrix.first().unwrap().len(), 
       tot_rows: points_matrix.len(), 
     };
-    let neighbours: Vec<Point> = get_neighbours(&cheapest_point.clone(), &size); 
 
+    if cost > *matrix.risk_from_source_by_point.get(&point).unwrap() {
+      continue;
+    }
+
+    let neighbours: Vec<Point> = get_neighbours(&point.clone(), &size); 
     for n in neighbours {
-      if !to_visit.contains(&n) {
+      if visited.contains(&n) {
         // we already have a shortest path to this point
         // skip it
         continue;
       }
 
-      let source_to_cheapest_point = matrix.risk_from_source_by_point.get(&cheapest_point).unwrap();
-      let n_to_cheapest_point = matrix.chitons_by_point.get(&n).unwrap();
-      let source_to_n = source_to_cheapest_point + n_to_cheapest_point;
-      let current_source_to_n = matrix.risk_from_source_by_point.get(&n).unwrap();
-      if source_to_n < *current_source_to_n {
-        matrix.risk_from_source_by_point.insert(n.clone(), source_to_n);
-        matrix.previous_by_point.insert(n.clone(), cheapest_point.clone());
+      let next = State {
+        point: n.clone(),
+        cost: cost + matrix.chitons_by_point.get(&n).unwrap(),
+      };
+      if next.cost < *matrix.risk_from_source_by_point.get(&next.point).unwrap() {
+          matrix.risk_from_source_by_point.insert(n.clone(), next.cost);
+          matrix.previous_by_point.insert(n.clone(), point.clone());
+          heap.push(next);
       }
     }
   }
