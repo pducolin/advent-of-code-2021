@@ -13,6 +13,7 @@ I'm using this project to play with Rust, TDD (Test Driven Development) and pre-
       - [Day 02](#day-02)
       - [Day 04](#day-04)
       - [Day 09](#day-09)
+      - [Day 15](#day-15)
 
 ## Testing
 
@@ -97,3 +98,16 @@ Derive: The compiler is capable of providing basic implementations for some trai
 [Mutable references](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html#mutable-references) or how to pass a value by reference, and let the function change it.
 
 >The restriction preventing multiple mutable references to the same data at the same time allows for mutation but in a very controlled fashion. It’s something that new Rustaceans struggle with, because most languages let you mutate whenever you’d like.The benefit of having this restriction is that Rust can prevent data races at compile time.
+
+#### Day 15
+
+Find min / max in a vector
+
+```rust
+let a = [1,4,3,2];
+
+let min_a = a.iter().min().unwrap();
+let max_a = a.iter().max().unwrap();
+```
+
+Docs: [Iterator min/max](https://doc.rust-lang.org/std/iter/trait.Iterator.html#examples-42)
