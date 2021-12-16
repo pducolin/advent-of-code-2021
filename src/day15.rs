@@ -133,17 +133,17 @@ fn string_to_numbers(s: &String) -> Vec<u64> {
 fn get_neighbours(point: &Point, size: &Size) -> Vec<Point> {
   let mut neighbours: Vec<Point> = Vec::new();
 
-    // left
-    if point.col > 0 {
-      let neighbour = Point{row: point.row, col: point.col - 1};
-      neighbours.push(neighbour);
-    }
-  
-    // top
-    if point.row > 0 {
-      let neighbour = Point{row: point.row - 1, col: point.col};
-      neighbours.push(neighbour);
-    }
+  // left
+  if point.col > 0 {
+    let neighbour = Point{row: point.row, col: point.col - 1};
+    neighbours.push(neighbour);
+  }
+
+  // top
+  if point.row > 0 {
+    let neighbour = Point{row: point.row - 1, col: point.col};
+    neighbours.push(neighbour);
+  }
 
   // right
   if point.col < size.tot_cols - 1 {
@@ -235,7 +235,6 @@ fn dijkstra_shortest_path(origin_matrix: &DijkstraMatrix, source: &Point, target
 fn solution_1(data: &Vec<String>) -> u64 {
   let chiton_matrix = ChitonMatrix::parse(data);
   let matrix = DijkstraMatrix::init(&chiton_matrix);
-  matrix.print();
 
   let source = Point{row:0, col:0};
   let target: Point = matrix.points_matrix.last().unwrap().last().unwrap().clone();
