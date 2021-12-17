@@ -14,6 +14,7 @@ I'm using this project to play with Rust, TDD (Test Driven Development) and pre-
       - [Day 04](#day-04)
       - [Day 09](#day-09)
       - [Day 15](#day-15)
+      - [Day 16](#day-16)
 
 ## Testing
 
@@ -108,6 +109,25 @@ let a = [1,4,3,2];
 
 let min_a = a.iter().min().unwrap();
 let max_a = a.iter().max().unwrap();
+```
+
+#### Day 16
+
+`loop` Loop indefinitely.
+
+loop is used to define the simplest kind of loop supported in Rust. It runs the code inside it until the code uses break or the program exits. Preferred to `while true {}`, as the compiler knows that the loop will always be executed at least once. Can be used to implement a `do .. while` iteration.
+
+```rust
+loop {
+    println!("hello world forever!");
+}
+
+loop {
+ do_something();
+ if condition_is_true {
+   break;
+ }
+}
 ```
 
 Docs: [Iterator min/max](https://doc.rust-lang.org/std/iter/trait.Iterator.html#examples-42)
