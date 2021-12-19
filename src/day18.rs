@@ -72,7 +72,6 @@ fn explode_expression(expression_before: &String) -> String {
     let num_re = Regex::new(r"\d+").unwrap();
     let mut left_chunk = expression[0..mat.start()].to_string();
     let mut right_chunk = expression[mat.end()..].to_string();
-    println!("💣 {}*{}*{}", left_chunk,mat.as_str(),right_chunk);
     if num_re.is_match(&left_chunk) {
       let num_mat = num_re.find_iter(&left_chunk).last().unwrap();
       let num_str = num_mat.as_str();
@@ -90,7 +89,6 @@ fn explode_expression(expression_before: &String) -> String {
       right_chunk = format!("{}{}{}", prefix, num, suffix); 
     }
     expression = format!("{}0{}", left_chunk, right_chunk);
-    println!("💣 {}", expression);
     break;
   }
   return expression;
@@ -104,14 +102,11 @@ fn split_expression(expression_before: &String) -> String {
     let mat = re.find(&expression).unwrap();
     let prefix = expression[0..mat.start()].to_string();
     let suffix = expression[mat.end()..].to_string();
-    println!("➕ {}*{}*{}", prefix,mat.as_str(),suffix);
     let number = u64::from_str_radix(&mat.as_str(), 10).unwrap();
     let left = number / 2;
     let right = left + number % 2;
     let split = format!("[{},{}]", left, right);
     expression = format!("{}{}{}", prefix, split, suffix);
-
-    println!("➕ {}", expression);
   }
   return expression;
 }
@@ -157,7 +152,7 @@ fn solution_2(data: &Vec<String>) -> u64 {
       if i == j {
         continue;
       }
-
+      println!("Evaluating {} + {}", i, j);
       let expression = sum(&expressions[i], &expressions[j]);
       let expression = reduce_expression(&expression);
       max_mag = cmp::max(evaluate_expression_magnitude(&expression), max_mag);
