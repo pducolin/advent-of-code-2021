@@ -30,23 +30,8 @@ impl Range {
 }
 
 #[derive(Debug, Clone)]
-struct Range3D {
-  range_x: Range,
-  range_y: Range,
-  range_z: Range,
-}
-
-impl Range3D {
-  fn is_in_range(&self, other: &Range3D) -> bool {
-    self.range_x.is_in_range(&other.range_x) &&
-    self.range_y.is_in_range(&other.range_y) &&
-    self.range_z.is_in_range(&other.range_z)
-  }
-}
-
-#[derive(Debug, Clone)]
 struct Instruction {
-  range: Range3D,
+  cuboid: Cuboid,
   on: bool
 }
 
@@ -69,19 +54,20 @@ impl Instruction {
     let z_max = numbers.next().unwrap();
 
     Self {
-      range: Range3D{
-        range_x: Range{
+      cuboid: Cuboid{
+        x: Range{
           min: x_min,
           max: x_max,
         },
-        range_y: Range{
+        y: Range{
           min: y_min,
           max: y_max,
         },
-        range_z: Range{
+        z: Range{
           min: z_min,
           max: z_max,
         },
+        off: Vec::new()
       },
       on
     }
@@ -98,72 +84,87 @@ fn parse_instructions(data: &Vec<String>) -> Vec<Instruction> {
 
 #[derive(Debug, Clone)]
 struct Cuboid {
-  cubes: HashSet<Point>
+  x: Range,
+  y: Range,
+  z: Range,
+
+  off: Vec<Cuboid>
 }
 
 impl Cuboid {
-  fn new() -> Self {
-    Self {
-      cubes: HashSet::new()
-    }
+  fn intersects(&self, other: &Cuboid) -> bool {
+    self.x.is_in_range(&other.x) &&
+    self.y.is_in_range(&other.y) &&
+    self.z.is_in_range(&other.z)
   }
 
-  fn apply_instruction(&mut self, instruction: &Instruction, valid_range: Option<&Range3D>) {
-    let mut range_x = instruction.range.range_x.clone();
-    let mut range_y = instruction.range.range_y.clone();
-    let mut range_z = instruction.range.range_z.clone();
-    if valid_range.is_some() {
-      range_x.min = i64::max(range_x.min, valid_range.unwrap().range_x.min);
-      range_x.max = i64::min(range_x.max, valid_range.unwrap().range_x.max);
-      range_y.min = i64::max(range_y.min, valid_range.unwrap().range_x.min);
-      range_y.max = i64::min(range_y.max, valid_range.unwrap().range_x.max);
-      range_z.min = i64::max(range_z.min, valid_range.unwrap().range_x.min);
-      range_z.max = i64::min(range_z.max, valid_range.unwrap().range_x.max);
+  fn subtract(&mut self, other: &Cuboid) {
+    if !self.intersects(other) {
+      return;
     }
-    for x in range_x.min..range_x.max + 1 {
-      for y in range_y.min..range_y.max + 1 {
-        for z in range_z.min..range_z.max + 1 {
-          let cube = Point{x,y,z};
-          if instruction.on {
-            // turn on this cube
-            self.cubes.insert(cube);
-          } else {
-            self.cubes.remove(&cube);
-          }
-        }
-      } 
-    }
+    let intersect_cube = Cuboid {
+      x: Range{
+        min: i64::max(self.x.min, other.x.min),
+        max: i64::min(self.x.max, other.x.max),
+      },
+      y: Range{
+        min: i64::max(self.y.min, other.y.min),
+        max: i64::min(self.y.max, other.y.max),
+      },
+      z: Range{
+        min: i64::max(self.z.min, other.z.min),
+        max: i64::min(self.z.max, other.z.max),
+      },
+      off: Vec::new()
+    };
+    self.off.iter_mut().for_each(|c|c.subtract(other));
+    self.off.push(intersect_cube);
+  }
+
+  fn volume(&self) -> u128 {
+    let off_volume : u128= self.off.iter().map(|c|c.volume()).sum();
+    ((self.x.max - self.x.min + 1) as u128
+    * (self.y.max - self.y.min + 1) as u128
+    * (self.z.max - self.z.min + 1) as u128)
+    - off_volume
   }
 }
 
 
-fn solution_1(data: &Vec<String>) -> usize {
-  let valid_range = Range3D {
-    range_x: Range::new(-50, 50),
-    range_y: Range::new(-50, 50),
-    range_z: Range::new(-50, 50),
+fn solution_1(data: &Vec<String>) -> u128 {
+  let valid_cuboid = Cuboid {
+    x: Range::new(-50, 50),
+    y: Range::new(-50, 50),
+    z: Range::new(-50, 50),
+    off: Vec::new()
   };
-  let mut instructions = parse_instructions(data);
-
-  let mut cuboid = Cuboid::new();
-  for inst in instructions.iter().filter(|i|i.range.is_in_range(&valid_range)) {
-    cuboid.apply_instruction(inst, Some(&valid_range));
-  }
-
-  cuboid.cubes.len()
-}
-
-fn solution_2(data: &Vec<String>) -> usize {
   let instructions = parse_instructions(data);
 
-  let mut cuboid = Cuboid::new();
-  for i in 0..instructions.len() {
-    println!("Applying instruction {} of {}", i + 1, instructions.len());
-    let inst: &Instruction = instructions.get(i).unwrap();
-    cuboid.apply_instruction(&inst, None);
-  }
+  let mut cubes: Vec<Cuboid> = Vec::new();
+  instructions.iter().filter(|i|i.cuboid.intersects(&valid_cuboid)).for_each(|i|{
+    let new_cube = i.cuboid.clone();
+    cubes.iter_mut().for_each(|c|c.subtract(&new_cube));
+    if i.on {
+      cubes.push(new_cube);
+    }
+  });
 
-  cuboid.cubes.len()
+  return cubes.iter().map(|c|c.volume()).sum();
+}
+
+fn solution_2(data: &Vec<String>) -> u128 {
+  let instructions = parse_instructions(data);
+
+  let mut cubes: Vec<Cuboid> = Vec::new();
+  instructions.iter().for_each(|i|{
+    let new_cube = i.cuboid.clone();
+    cubes.iter_mut().for_each(|c|c.subtract(&new_cube));
+    if i.on {
+      cubes.push(new_cube);
+    }
+  });
+
+  return cubes.iter().map(|c|c.volume()).sum();
 }
 
 fn main() {
