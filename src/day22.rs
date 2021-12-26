@@ -1,8 +1,5 @@
-use std::collections::HashSet;
-use std::collections::hash_map::RandomState;
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::iter::Inspect;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Point {
